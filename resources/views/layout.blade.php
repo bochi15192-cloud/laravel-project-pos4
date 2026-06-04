@@ -46,7 +46,14 @@
                     text: '{{ session('status') }}', 
                     timer: 3000, 
             confirmButtonText: 'yes',
-                });
+              });
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Error', 
+                    text: '{{ session('status') }}', 
+                    timer: 3000, 
+            confirmButtonText: 'okey',
+         });
         });
         </script> 
          @endif
