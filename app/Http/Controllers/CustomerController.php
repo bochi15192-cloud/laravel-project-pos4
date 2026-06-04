@@ -10,13 +10,30 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+        protected $message = [
+                'name.required' => 'กรอกชื่อลูกค้า',
+                'name.min' => 'ชื่อลูกค้าต้องอย่างน้อย :min ตัวอักษร',
+                'name.max' => 'ชื่อลูกค้าต้องไม่เกิน :max ตัวอักษร',
+                'email.required' => 'กรอกอีเมลลูกค้า',
+                'email.email' => 'กรอกอีเมลให้ถูกต้อง',
+                'email.unique' => 'อีเมลนี้มีอยู่แล้ว',
+                'phone.max' => 'เบอร์โทรต้องไม่เกิน :max ตัวอักษร',
+                ];
     public function index()
     {
-        $customers = Customer::all();
+        try{
+             // $customers = Customer::all();
+        $customers = Customer::orderBy('id', 'asc')->paginate(10);
+        // "name ,id created_at,": เรียงลำดับ
         return view('customers.index' ,compact('customers'));
+        }catch(\Exception $e){
+            return view('error.404');
+        }
+       
     }
 
-    /**
+    /** 
      * Show the form for creating a new resource.
      */
     public function create()
@@ -30,15 +47,18 @@ class CustomerController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email',
-            'phone' => 'required|numeric',
-        ]);
-
-        Customer::create($request->all());
-        // Customer::create($request->only('name', 'email', 'phone'));
-        return redirect()->route('customers.index')->with('status', 'Customer created successfully.');
+            try {
+                 $request->validate([
+                    'name' => 'required|string|min:3|max:255',
+                    'email' => 'required|email|unique:customers,email',
+                    'phone' => 'nullable|string|max:20',
+                ],$this->message);
+                Customer::create($request->all());
+                // Customer::create($request->only('name', 'email', 'phone'));
+                return redirect()->route('customers.index')->with('status', 'Customer created successfully.');
+            }catch(\Exception $e){
+                return redirect()->route('customers.index')->with('status', 'Failed to create customer: ' . $e->getMessage());
+            } 
     }
 
     /**
@@ -63,14 +83,19 @@ class CustomerController extends Controller
      */
     public function update(Request $request, Customer $customer)
     {
-          $request->validate([
-            'name' => 'required',
+       try{
+           $request->validate([
+            'name' => 'required|string|min:3|max:255',
             'email' => 'required|email|unique:customers,email,'.$customer->id,
-            'phone' => 'required|numeric',
-        ]);
+            'phone' => 'nullable|string|max:20',
+        ], $this->message);
 
         $customer->update($request->only('name', 'email', 'phone'));
         return redirect()->route('customers.index')->with('status', 'Customer updated successfully.');
+       }
+       catch(\Exception $e){
+        return redirect()->route('customers.index')->with('status', 'Failed to update customer: ' . $e->getMessage());
+       }
     }
 
     /**

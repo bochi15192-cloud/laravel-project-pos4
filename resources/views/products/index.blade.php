@@ -5,8 +5,8 @@
     <a href="{{ route('products.create')}}"class="btn btn-primary mb-3">create Product</a>
     @if(session('success'))
         <div class="alert alert-success">{{ session('status') }}
-            @endif
-        </div> 
+        </div>
+        @endif 
     <table class="table table-striped text-center" >
         <thead>
             <tr>
@@ -34,4 +34,5 @@
             @endforeach
         </tbody>
     </table>
+    {{ $products->links() }}
 @endsection

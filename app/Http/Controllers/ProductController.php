@@ -10,10 +10,24 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    protected $message = [
+        'sku.required' => 'กรอก SKU',
+        'sku.unique' => 'SKU นี้มีอยู่แล้ว',
+        'name.required' => 'กรอกชื่อสินค้า',
+        'price.numeric' => 'ราคาต้องเป็นตัวเลข',
+    ];
     public function index()
     {
-        $products = Product::all();
+
+        try{
+           // $products = Product::all();
+        $products = Product::orderBy('id','asc')->paginate(10);
         return view('products.index',compact('products'));
+        }catch(\Exception $e){
+            return view('error.404');
+        }
+        
     }
 
     /**
@@ -29,15 +43,21 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        try{
+         $request->validate([
             'sku' => 'required|unique:products,sku',
             'name' => 'required',
-            'price' => 'required|numeric',
-        ]);
+            'price' => 'nullable|numeric',
+        ],$this->message);
 
-        Product::create($request->all());
+     Product::create($request->all());
         return redirect()->route('products.index')->with('status', 'Product created successfully.');
+        }catch(\Exception $e){
+            return redirect()->route('products.index')->with('status', 'Failed to create product: ' . $e->getMessage());
+            } 
     }
+        
+       
 
     /**
      * Display the specified resource.
@@ -60,14 +80,18 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        $request->validate([
-            'sku' => 'required|unique:products,sku,' . $product->id,
-            'name' => 'required',
-            'price' => 'required|numeric',
-        ]);
+        try{
+            $request->validate([
+                'sku' => 'required|unique:products,sku,' . $product->id,
+                'name' => 'required',
+                'price' => 'nullable|numeric',
+        ],$this->message);
 
-        $product->update($request->all());
-        return redirect()->route('products.index')->with('status', 'Product updated successfully.');
+            $product->update($request->all());
+            return redirect()->route('products.index')->with('status', 'Product updated successfully.');
+        } catch(\Exception $e){
+            return redirect()->route('products.index')->with('status', 'Failed to update product: ' . $e->getMessage());
+        }
     }
 
     /**

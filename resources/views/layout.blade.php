@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bootstrap demo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"rel="stylesheet">
+    @vite(['resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -33,7 +35,22 @@
         </div>
           <footer class="bg-dark text-white text-center py-3 mt-4">
             &copy; 2024 Pos system. All rights reserved.
-        </footer> 
+        </footer>
+
+         @if(session('status'))
+       <script>
+            document.addEventListener('DOMContentLoaded',function(){
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'Successfully', 
+                    text: '{{ session('status') }}', 
+                    timer: 3000, 
+            confirmButtonText: 'yes',
+                });
+        });
+        </script> 
+         @endif
+       
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"rel=""stylesheet"></script>
   </body>
 </html>
