@@ -38,6 +38,7 @@
         </footer>
 
          @if(session('status'))
+         
        <script>
             document.addEventListener('DOMContentLoaded',function(){
                 Swal.fire({ 
@@ -47,14 +48,18 @@
                     timer: 3000, 
             confirmButtonText: 'yes',
               });
+            });
+        </script>
+        @endif
+         @if(session('error'))
+       <script>
                 Swal.fire({ 
                     icon: 'error', 
                     title: 'Error', 
-                    text: '{{ session('status') }}', 
+                    text: '{{ session('error') }}', 
                     timer: 3000, 
             confirmButtonText: 'okey',
          });
-        });
         </script> 
          @endif
        

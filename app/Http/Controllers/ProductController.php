@@ -53,7 +53,7 @@ class ProductController extends Controller
      Product::create($request->all());
         return redirect()->route('products.index')->with('status', 'Product created successfully.');
         }catch(\Exception $e){
-            return redirect()->back()->with('status', 'Failed to create product: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to create product: ' . $e->getMessage());
             } 
     }
         
@@ -90,7 +90,7 @@ class ProductController extends Controller
             $product->update($request->all());
             return redirect()->route('products.index')->with('status', 'Product updated successfully.');
         } catch(\Exception $e){
-            return redirect()->back()->with('status', 'Failed to update product: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update product: ' . $e->getMessage());
         }
     }
 
