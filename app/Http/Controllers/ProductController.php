@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -60,7 +61,7 @@ class ProductController extends Controller
 
             $imagePath = null;
             if ($request->hasFile('image')) {
-                $filename = time() . '.' . $request->file('image')->getClientOriginalExtension();
+                $filename = $request->sku .'_'.time() . '.' . $request->file('image')->getClientOriginalExtension();
                 $imagePath = $request->file('image')->storeAs('product/images',$filename, 'public');
             }
 
@@ -75,7 +76,7 @@ class ProductController extends Controller
             // ขั้นตอน3: Redirect กลับไปที่หน้ารายการสินค้า พร้อมแสดงข้อความสำเร็จ  
         return redirect()->route('products.index')->with('status', ['status' => 'success', 'title' => 'Success', 'message' => 'Product created successfully.']);
         }catch(\Exception $e){
-          return back()->with('status', ['status' => 'error', 'title' => 'Error', 'message' =>$e->getMessage()]);
+          return back()->withInput()->with('status', ['status' => 'error', 'title' => 'Error', 'message' =>$e->getMessage()]);
         }
     }
         
@@ -107,16 +108,25 @@ class ProductController extends Controller
                 'sku' => 'required|string|size:13|unique:products,sku,' . $product->id,
                 'name' => 'required|string|min:3|max:255',
                 'price' => 'nullable|numeric|min:0',
-                'image' => 'nullable|image|max:2048', 
+                'image' => 'nullable|image|mimes:jpeg,png|max:2048', 
         ],$this->message);
+  
+    
+          if($request->hasFile('image')){ // ตรวจสอบว่ามีไฟล์ภาพใหม่ถูกอัปโหลดมาหรือไม่
+            $request->validate([
+                'image' => 'nullable|image|mimes:jpeg,png|max:2048', 
+            ],$this->message);
 
-            $imagePath = $product->image;
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('product/images', 'public');
+            if($product->image){ //ตรวจสอบว่ามีรูปภาพเก่าหรือไม่ ถ้ามีให้ลบออกก่อน
+                    Storage::disk('public')->delete($product->image);
             }
-            $request->merge(['image' => $imagePath]);
+            $filename = $product->sku .'_'.time() . '.' . $request->file('image')->getClientOriginalExtension();
+            $imagePath = $request->file('image')->storeAs('product/images',$filename, 'public');
+            $product->update(['image' => $imagePath]);
+          }
+          $product->update($request->only( 'name', 'price'));
 
-            $product->update($request->all());
+            // $product->update($request->all());
             return redirect()->route('products.index')->with('status', ['status' => 'success', 'title' => 'Success', 'message' => 'Product updated successfully.']);
         } catch(\Exception $e){
             return back()->withInput()->with('status', ['status' => 'error', 'title' => 'Error', 'message' =>$e->getMessage()]);
@@ -128,8 +138,16 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
-        $product->delete();
-      return redirect()->route('products.index')->with('status', ['status' => 'success', 'title' => 'Success', 'message' => 'Product deleted successfully.']);
+        try {
+            if($product->image){
+                    Storage::disk('public')->delete($product->image);
+                }
+                 $product->delete();
+            return redirect()->route('products.index')->with('status', ['status' => 'success', 'title' => 'Success', 'message' => 'Product deleted successfully.']);
+        }catch(\Exception $e){
+            return redirect()->route('products.index')->with('status', ['status' => 'error', 'title' => 'Error', 'message' => 'Failed to delete product: ' . $e->getMessage()]);
+        }
+      
     }
     }
 

@@ -57,7 +57,7 @@ class CustomerController extends Controller
                 // Customer::create($request->only('name', 'email', 'phone'));
                 return redirect()->route('customers.index')->with('status', ['status' => 'success', 'title' => 'Success', 'message' => 'Customer created successfully.']);
             }catch(\Exception $e){
-                 return redirect()->route('customers.index')->with('status', ['status' => 'error', 'title' => 'Error', 'message' => 'Failed to create customer: ' . $e->getMessage()]);
+                 return back()->withInput()->with('status', ['status' => 'error', 'title' => 'Error', 'message' => 'Failed to create customer: ' . $e->getMessage()]);
             } 
     }
 
@@ -94,7 +94,7 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')->with('status', ['status' => 'success', 'title' => 'Success', 'message' => 'Customer updated successfully.']);
        }
        catch(\Exception $e){
-        return redirect()->route('customers.index')->with('status', ['status' => 'error', 'title' => 'Error', 'message' => 'Failed to update customer: ' . $e->getMessage()]);
+        return back()->withInput()->with('status', ['status' => 'error', 'title' => 'Error', 'message' => 'Failed to update customer: ' . $e->getMessage()]);
        }
     }
 
