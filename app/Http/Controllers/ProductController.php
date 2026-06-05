@@ -12,10 +12,16 @@ class ProductController extends Controller
      */
 
     protected $message = [
-        'sku.required' => 'กรอก SKU',
-        'sku.unique' => 'SKU นี้มีอยู่แล้ว',
+        'sku.required' => 'กรอก สินค้า',
+        'sku.unique' => 'รหัสสินค้า นี้มีอยู่แล้ว',
+        "sku.size" => 'รหัสสินค้า ต้องมีความยาว :size ตัวอักษร',
         'name.required' => 'กรอกชื่อสินค้า',
+        'name.min' => 'ชื่อสินค้าต้องมีความยาวอย่างน้อย :min ตัวอักษร',
+        'name.max' => 'ชื่อสินค้าต้องมีความยาวไม่เกิน :max ตัวอักษร',
         'price.numeric' => 'ราคาต้องเป็นตัวเลข',
+        'price.min' => 'ราคาต้องมากกว่าหรือเท่ากับ :min',
+        'image.image' => 'ไฟล์ที่อัปโหลดต้องเป็นรูปภาพ (เช่น jpeg, png)',
+        'image.max' => 'ขนาดไฟล์รูปภาพต้องไม่เกิน :max กิโลไบต์',
     ];
     public function index()
     {
@@ -44,17 +50,33 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         try{
+            // ขั้นตอน1: Validate ข้อมูลที่รับมาจากฟอร์ม
          $request->validate([
-            'sku' => 'required|unique:products,sku',
-            'name' => 'required',
-            'price' => 'nullable|numeric',
+            'sku' => 'required|string|size:13|unique:products,sku',
+            'name' => 'required|string|min:3|max:255',
+            'price' => 'nullable|numeric|min:0',
+            'image' => 'nullable|image|max:2048', // เพิ่มการตรวจสอบไฟล์ภาพ
         ],$this->message);
 
-     Product::create($request->all());
-        return redirect()->route('products.index')->with('status', 'Product created successfully.');
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $filename = time() . '.' . $request->file('image')->getClientOriginalExtension();
+                $imagePath = $request->file('image')->storeAs('product/images',$filename, 'public');
+            }
+
+            // dd($imagePath;
+        // ขั้นตอน2: สร้างสินค้าใหม่ในฐานข้อมูล
+     Product::create([
+        'sku' => $request->input('sku'),
+        'name' => $request->input('name'),
+        'price' => $request->input('price'),
+        'image' => $imagePath,
+        ]);
+            // ขั้นตอน3: Redirect กลับไปที่หน้ารายการสินค้า พร้อมแสดงข้อความสำเร็จ  
+        return redirect()->route('products.index')->with('status', ['status' => 'success', 'title' => 'Success', 'message' => 'Product created successfully.']);
         }catch(\Exception $e){
-            return redirect()->back()->with('error', 'Failed to create product: ' . $e->getMessage());
-            } 
+          return back()->with('status', ['status' => 'error', 'title' => 'Error', 'message' =>$e->getMessage()]);
+        }
     }
         
        
@@ -82,15 +104,22 @@ class ProductController extends Controller
     {
         try{
             $request->validate([
-                'sku' => 'required|unique:products,sku,' . $product->id,
-                'name' => 'required',
-                'price' => 'nullable|numeric',
+                'sku' => 'required|string|size:13|unique:products,sku,' . $product->id,
+                'name' => 'required|string|min:3|max:255',
+                'price' => 'nullable|numeric|min:0',
+                'image' => 'nullable|image|max:2048', 
         ],$this->message);
 
+            $imagePath = $product->image;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('product/images', 'public');
+            }
+            $request->merge(['image' => $imagePath]);
+
             $product->update($request->all());
-            return redirect()->route('products.index')->with('status', 'Product updated successfully.');
+            return redirect()->route('products.index')->with('status', ['status' => 'success', 'title' => 'Success', 'message' => 'Product updated successfully.']);
         } catch(\Exception $e){
-            return redirect()->back()->with('error', 'Failed to update product: ' . $e->getMessage());
+            return back()->withInput()->with('status', ['status' => 'error', 'title' => 'Error', 'message' =>$e->getMessage()]);
         }
     }
 
@@ -100,6 +129,7 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
-        return redirect()->route('products.index')->with('status', 'Product deleted successfully.');
+      return redirect()->route('products.index')->with('status', ['status' => 'success', 'title' => 'Success', 'message' => 'Product deleted successfully.']);
     }
-}
+    }
+

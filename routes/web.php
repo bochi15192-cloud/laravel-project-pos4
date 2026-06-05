@@ -3,10 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProductController;
-Route::get('/', function () {
-    return view('home');
-});
+
 // Customer Routes
+Route::get('/', function () {return view('home');})->name('home');
 Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
 Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
 Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
@@ -16,6 +15,7 @@ Route::delete('/customers/destroy/{customer}',[CustomerController::class,'destro
 
 
 // Product Routes
+Route::get('/', function () {return view('home');})->name('home');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
 Route::post('/products', [ProductController::class, 'store'])->name('products.store');

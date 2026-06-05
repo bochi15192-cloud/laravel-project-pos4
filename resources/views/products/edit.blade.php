@@ -7,7 +7,7 @@
         @method('PUT')
         <div class="form-group">
             <label for="sku">SKU</label>
-            <input type="text" class="form-control" id="sku" name="sku" value="{{ $product->sku }}" required>
+            <input type="text" class="form-control" id="sku" name="sku" value="{{ $product->sku }}" autofocus required>
         </div>
         <div class="form-group">
             <label for="name">Name</label>
